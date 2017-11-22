@@ -1,6 +1,7 @@
-#嵌套滚动
+嵌套滚动
+--
 
-##FrameLayout实现
+1、FrameLayout+FrameLayout实现
 
 <img src='nestscrollingframelayout/screenshot/01.gif' height='480px'/>
 
