@@ -10,33 +10,35 @@ import android.support.v4.view.NestedScrollingParentHelper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.LinearLayout;
+import android.widget.Scroller;
 
 /**
  * Created by wupengjian on 17/11/20.
  */
-public class ParentView extends LinearLayout implements NestedScrollingParent {
+public class ParentView extends LinearLayout implements NestedScrollingParent, INestedView {
 
     private IPrint mPrint;
     private View mHeadView, mBodyView, mTailView;
     private int mHeadHeight, mBodyHeight, mTailHeight;
-    private int mMinNestedOffset = -1, mMaxNestedOffset = -1;
-    //总的位移，包含子View（特别重要）粘性滚动时的位移
-    private int mOffsetIncludeChildren;
+    private int mMaxScrollY = -1;
     private NestedScrollingParentHelper mParentHelper;
 
     private float mLastY;
+    private Scroller mScroller;
 
     public ParentView(@NonNull Context context) {
-        super(context);
+        this(context, null);
     }
 
     public ParentView(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
+        this(context, attrs, 0);
     }
 
     public ParentView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        mScroller = new Scroller(context, new AccelerateDecelerateInterpolator());
     }
 
     @Override
@@ -46,7 +48,7 @@ public class ParentView extends LinearLayout implements NestedScrollingParent {
         mBodyHeight = mBodyView.getMeasuredHeight();
         mTailHeight = mTailView.getMeasuredHeight();
 
-        mMinNestedOffset = -mHeadHeight;
+        mMaxScrollY = mHeadHeight + mBodyHeight + mTailHeight;
     }
 
     //处理其他子view的滚动
@@ -58,18 +60,25 @@ public class ParentView extends LinearLayout implements NestedScrollingParent {
                 mLastY = event.getRawY();
                 break;
             case MotionEvent.ACTION_MOVE:
-                int dy = (int) (event.getRawY() - mLastY);
+                int dy = (int) (mLastY - event.getRawY());
                 mLastY = event.getRawY();
                 //doScroll中只会记录子View的滚动距离
-                int deltaY = doScroll(dy);
-                mOffsetIncludeChildren += deltaY;
-                print(String.format("parent cost %s , total offset is %d", deltaY, mOffsetIncludeChildren));
+                int deltaY = doNestedScroll(dy);
+                print(String.format("parent cost %s , total offset is %d", deltaY, getCurrentScrollY()));
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 break;
         }
         return true;
+    }
+
+    @Override
+    public void computeScroll() {
+        if (mScroller.computeScrollOffset()) {
+            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+            invalidate();
+        }
     }
 
     @Override
@@ -114,69 +123,112 @@ public class ParentView extends LinearLayout implements NestedScrollingParent {
 
     @Override
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
-        int deltaY = doScroll(dy);
+        int deltaY = doNestedPreScroll(dy);
         consumed[1] = deltaY;
-        //这里dy是子View和父View消费前全部的滚动距离
-        mOffsetIncludeChildren += dy;
-        print(String.format("parent cost %s , total offset is %d", deltaY, mOffsetIncludeChildren));
+        print(String.format("parent cost %s , total offset is %d", deltaY, getCurrentScrollY()));
+    }
+
+    /**
+     * 嵌套滚动前的滚动，只处理子view嵌套滚动前的那段距离：
+     * 1、手指从下往上时，最多只能滚动到mBodyView刚好要隐藏的位置
+     * 2、手指从上往下时，最多只能滚动到mBodyView刚好要显示的位置
+     *
+     * @param dy
+     * @return
+     */
+    private int doNestedPreScroll(int dy) {
+        int deltaY = dy;
+        //手指从上往下，屏幕相机从下到上，mScrollY由大变小
+        if (dy < 0) {
+            //滚动显示mBodyView
+            if (getCurrentScrollY() > mHeadHeight) {
+                deltaY = mHeadHeight - getCurrentScrollY();
+            } else {
+                deltaY = 0;
+            }
+        }
+        //手指从下往上
+        else if (dy > 0) {
+            //滚动隐藏mHeadView
+            if (getCurrentScrollY() < mHeadHeight) {
+                if (deltaY + getCurrentScrollY() > mHeadHeight) {
+                    deltaY = mHeadHeight - getCurrentScrollY();
+                }
+            } else {
+                deltaY = 0;
+            }
+        }
+        scrollBy(0, deltaY);
+        return deltaY;
     }
 
     @Override
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
-        //手指从下往上
-        if (dyConsumed < 0) {
-            //当前的滚动距离（父View+子View）减去子View没有消费的距离
-            mMaxNestedOffset = mOffsetIncludeChildren - dyUnconsumed;
-        }
         //这里的dy是父View第一次消费完和子View消费完之后剩下没有消费的距离
-        int deltaY = doScroll(dyUnconsumed);
-        //要减去父View和子View都没有消耗的距离
-        mOffsetIncludeChildren -= (dyUnconsumed - deltaY);
-        print(String.format("parent cost %s , total offset is %d", deltaY, mOffsetIncludeChildren));
+        int deltaY = doNestedScroll(dyUnconsumed);
+        print(String.format("parent cost %s , total offset is %d", deltaY, getCurrentScrollY()));
     }
 
-    private int doScroll(int dy) {
+    /**
+     * 不用考虑子View的嵌套滚动，只考虑自己的边界情况即可
+     * <p>
+     * 1、纯事件分发走进来
+     * 2、子view没有消费完的滚动距离
+     *
+     * @param dy
+     * @return
+     */
+    private int doNestedScroll(int dy) {
         int deltaY = dy;
         //手指从上往下，屏幕相机从下到上，mScrollY由大变小
-        if (dy > 0) {
-            //滚动隐藏mTailView
-            if (isNestedChildScrollCompleted() && mOffsetIncludeChildren < mMaxNestedOffset) {
-                if (deltaY + mOffsetIncludeChildren > mMaxNestedOffset) {
-                    deltaY = mMaxNestedOffset - mOffsetIncludeChildren;
-                }
-            }
+        if (dy < 0) {
             //滚动显示mHeadView
-            else if (mOffsetIncludeChildren >= mMinNestedOffset) {
-                if (deltaY + mOffsetIncludeChildren > 0) {
-                    deltaY = 0 - mOffsetIncludeChildren;
+            if (getCurrentScrollY() > getMinScrollY()) {
+                if (deltaY + getCurrentScrollY() < getMinScrollY()) {
+                    deltaY = getMinScrollY() - getCurrentScrollY();
                 }
             } else {
                 deltaY = 0;
             }
         }
         //手指从下往上
-        else if (dy < 0) {
-            //滚动隐藏mHeadView
-            if (mOffsetIncludeChildren > mMinNestedOffset) {//负数间比较
-                if (deltaY + mOffsetIncludeChildren < mMinNestedOffset) {
-                    deltaY = mMinNestedOffset - mOffsetIncludeChildren;
-                }
-            }
-            //滚动显示mTailView
-            else if (isNestedChildScrollCompleted() && mOffsetIncludeChildren <= mMaxNestedOffset) {//负数间比较
-                if (deltaY + mOffsetIncludeChildren < mMaxNestedOffset - mTailHeight) {
-                    deltaY = mMaxNestedOffset - mTailHeight - mOffsetIncludeChildren;
+        else if (dy > 0) {
+            //隐藏mBodyView
+            if (getCurrentScrollY() < getMaxScrollY()) {
+                if (deltaY + getCurrentScrollY() > getMaxScrollY()) {
+                    deltaY = getMaxScrollY() - getCurrentScrollY();
                 }
             } else {
                 deltaY = 0;
             }
         }
-        scrollBy(0, -deltaY);
+        scrollBy(0, deltaY);
         return deltaY;
     }
 
-    private boolean isNestedChildScrollCompleted() {
-        return mMaxNestedOffset < mMinNestedOffset;
+    @Override
+    public boolean canMove2Top() {
+        return getCurrentScrollY() > getMinScrollY();
+    }
+
+    @Override
+    public boolean canMove2Bottom() {
+        return getCurrentScrollY() < getMaxScrollY();
+    }
+
+    @Override
+    public int getMinScrollY() {
+        return 0;
+    }
+
+    @Override
+    public int getMaxScrollY() {
+        return mMaxScrollY;
+    }
+
+    @Override
+    public int getCurrentScrollY() {
+        return getScrollY();
     }
 
     @Override
@@ -186,7 +238,13 @@ public class ParentView extends LinearLayout implements NestedScrollingParent {
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
+        fling((int) velocityY);
         return false;
+    }
+
+    public void fling(int velocityY) {
+        mScroller.fling(0, getScrollY(), 0, velocityY, 0, 0, 0, mHeadHeight + mBodyHeight);
+        invalidate();
     }
 
     @Override

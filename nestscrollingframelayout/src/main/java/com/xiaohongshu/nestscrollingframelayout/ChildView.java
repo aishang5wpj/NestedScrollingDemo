@@ -9,6 +9,7 @@ import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
@@ -17,15 +18,17 @@ import android.widget.Scroller;
 /**
  * Created by wupengjian on 17/11/20.
  */
-public class ChildView extends FrameLayout implements NestedScrollingChild {
+public class ChildView extends FrameLayout implements NestedScrollingChild, INestedView {
 
     private IPrint mPrint;
     private NestedScrollingChildHelper mChildHelper;
     private float mLastY;
     private int[] mConsume = new int[2], mOffsetInWindow = new int[2];
     private View mDirectChildView;
-    private int mChildExpectedHeight, mMeasuredHeight, mTotalOffset;
+    private int mChildExpectedHeight, mMeasuredHeight;
+
     private Scroller mScroller;
+    private VelocityTracker mVelocityTracker;
 
     public ChildView(@NonNull Context context) {
         this(context, null);
@@ -61,9 +64,17 @@ public class ChildView extends FrameLayout implements NestedScrollingChild {
             case MotionEvent.ACTION_DOWN:
                 getChildHelper().startNestedScroll(SCROLL_AXIS_VERTICAL);
                 mLastY = event.getRawY();
+                if (mVelocityTracker == null) {
+                    mVelocityTracker = VelocityTracker.obtain();
+                } else {
+                    mVelocityTracker.clear();
+                }
+                mVelocityTracker.addMovement(event);
                 break;
             case MotionEvent.ACTION_MOVE:
-                int dy = (int) (event.getRawY() - mLastY);
+                mVelocityTracker.addMovement(event);
+
+                int dy = (int) (mLastY - event.getRawY());
                 mLastY = event.getRawY();
                 //1、ViewGroup先消耗一波
                 if (getChildHelper().dispatchNestedPreScroll(0, dy, mConsume, mOffsetInWindow)) {
@@ -72,24 +83,22 @@ public class ChildView extends FrameLayout implements NestedScrollingChild {
                 //2、自己消耗一波
                 //手指从上往下
                 int deltaY = 0;
-                if (dy > 0 && mTotalOffset < 0) {
+                if (dy < 0 && canMove2Top()) {
                     deltaY = dy;
-                    if (deltaY + mTotalOffset > 0) {
-                        deltaY = 0 - mTotalOffset;
+                    if (deltaY + getCurrentScrollY() < getMinScrollY()) {
+                        deltaY = getMinScrollY() - getCurrentScrollY();
                     }
-                    mTotalOffset += deltaY;
-                    scrollBy(0, -deltaY);
-                    print(String.format("child cost %s , total offset is %d", deltaY, mTotalOffset));
+                    scrollBy(0, deltaY);
+                    print(String.format("child cost %s , total offset is %d", deltaY, getCurrentScrollY()));
                 }
                 //手指从下往上
-                else if (dy < 0 && mTotalOffset > mMeasuredHeight - mChildExpectedHeight) {
+                else if (dy > 0 && canMove2Bottom()) {
                     deltaY = dy;
-                    if (deltaY + mTotalOffset < mMeasuredHeight - mChildExpectedHeight) {
-                        deltaY = mMeasuredHeight - mChildExpectedHeight - mTotalOffset;
+                    if (deltaY + getCurrentScrollY() > getMaxScrollY()) {
+                        deltaY = getMaxScrollY() - getCurrentScrollY();
                     }
-                    mTotalOffset += deltaY;
-                    scrollBy(0, -deltaY);
-                    print(String.format("child cost %s , total offset is %d", deltaY, mTotalOffset));
+                    scrollBy(0, deltaY);
+                    print(String.format("child cost %s , total offset is %d", deltaY, getCurrentScrollY()));
                 }
                 //3、自己消耗完仍有剩余，交给父View
                 if (dy != deltaY) {
@@ -99,6 +108,13 @@ public class ChildView extends FrameLayout implements NestedScrollingChild {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 getChildHelper().stopNestedScroll();
+                mVelocityTracker.computeCurrentVelocity(1000);
+                float velocity = mVelocityTracker.getYVelocity();
+                if (Math.abs(velocity) > 50) {
+                    fling(-(int) velocity);
+                }
+                mVelocityTracker.recycle();
+                mVelocityTracker = null;
                 break;
         }
         //很重要，否则下面的事件收不到了
@@ -111,6 +127,36 @@ public class ChildView extends FrameLayout implements NestedScrollingChild {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             invalidate();
         }
+    }
+
+    public void fling(int velocityY) {
+        mScroller.fling(0, getScrollY(), 0, velocityY, 0, 0, 0, mChildExpectedHeight - mMeasuredHeight);
+        invalidate();
+    }
+
+    @Override
+    public boolean canMove2Top() {
+        return getCurrentScrollY() > getMinScrollY();
+    }
+
+    @Override
+    public boolean canMove2Bottom() {
+        return getCurrentScrollY() < getMaxScrollY();
+    }
+
+    @Override
+    public int getMinScrollY() {
+        return 0;
+    }
+
+    @Override
+    public int getMaxScrollY() {
+        return mChildExpectedHeight - mMeasuredHeight;
+    }
+
+    @Override
+    public int getCurrentScrollY() {
+        return getScrollY();
     }
 
     public void setPrint(IPrint print) {
