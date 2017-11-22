@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/nested_info_tv"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@android:color/holo_red_dark"
+        android:fadeScrollbars="false"
+        android:lineSpacingExtra="1dp"
+        android:onClick="clearInfo"
+        android:padding="10dp"
+        android:scrollbarFadeDuration="2000"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="vertical"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"/>
+
+    <com.xiaohongshu.nestscrollingframelayout.ParentView
+        android:id="@+id/parent_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@android:color/holo_blue_dark"
+            android:gravity="center"
+            android:text="Hello World!"
+            android:textColor="@android:color/white"/>
+
+        <com.xiaohongshu.nestscrollingframelayout.ChildView
+            android:id="@+id/child_view"
+            android:layout_width="match_parent"
+            android:layout_height="300dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_green_dark"
+                android:text="@string/text"
+                android:textColor="@android:color/white"/>
+        </com.xiaohongshu.nestscrollingframelayout.ChildView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@android:color/holo_blue_dark"
+            android:gravity="center"
+            android:text="Hello World!"
+            android:textColor="@android:color/white"/>
+
+    </com.xiaohongshu.nestscrollingframelayout.ParentView>
+</LinearLayout>

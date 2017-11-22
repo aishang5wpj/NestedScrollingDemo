@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">NestScrollingFramelayout</string>
+    <string name="text">**start**
+        \n\n
+        NestedScrolling 提供了一套父 View 和子 View 滑动交互机制。要完成这样的交互，父 View 需要实现 NestedScrollingParent 接口，而子 View 需要实现 NestedScrollingChild 接口。
+\n\n
+实现 NestedScrollingChild
+\n\n
+首先来说 NestedScrollingChild。如果你有一个可以滑动的 View，需要被用来作为嵌入滑动的子 View，就必须实现本接口。在此 View 中，包含一个 NestedScrollingChildHelper 辅助类。NestedScrollingChild 接口的实现，基本上就是调用本 Helper 类的对应的函数即可，因为 Helper 类中已经实现好了 Child 和 Parent 交互的逻辑。原来的 View 的处理 Touch 事件，并实现滑动的逻辑大体上不需要改变。
+\n\n
+需要做的就是，如果要准备开始滑动了，需要告诉 Parent，你要准备进入滑动状态了，调用 startNestedScroll()。你在滑动之前，先问一下你的 Parent 是否需要滑动，也就是调用dispatchNestedPreScroll()。如果父类滑动了一定距离，你需要重新计算一下父类滑动后剩下给你的滑动距离余量。然后，你自己进行余下的滑动。最后，如果滑动距离还有剩余，你就再问一下，Parent 是否需要在继续滑动你剩下的距离，也就是调用 dispatchNestedScroll()。
+\n\n
+以上是一些基本原理，有了上面的基本思路，可以参考这篇文章，这里面有原理的详细解析。如果还是不清楚，这里有对应的代码可以参考。
+\n\n
+实现 NestedScrollingParent
+\n\n
+作为一个可以嵌入 NestedScrollingChild 的父 View，需要实现 NestedScrollingParent，这个接口方法和 NestedScrollingChild 大致有一一对应的关系。同样，也有一个 NestedScrollingParentHelper辅助类来默默的帮助你实现和 Child 交互的逻辑。滑动动作是 Child 主动发起，Parent 就收滑动回调并作出响应。
+\n\n
+从上面的 Child 分析可知，滑动开始的调用 startNestedScroll()，Parent 收到 onStartNestedScroll() 回调，决定是否需要配合 Child 一起进行处理滑动，如果需要配合，还会回调onNestedScrollAccepted()。
+\n\n
+每次滑动前，Child 先询问 Parent 是否需要滑动，即 dispatchNestedPreScroll()，这就回调到 Parent 的 onNestedPreScroll()，Parent 可以在这个回调中“劫持”掉 Child 的滑动，也就是先于 Child 滑动。
+\n\n
+Child 滑动以后，会调用 onNestedScroll()，回调到 Parent 的 onNestedScroll()，这里就是 Child 滑动后，剩下的给 Parent 处理，也就是 后于 Child 滑动。
+\n\n
+最后，滑动结束，调用 onStopNestedScroll() 表示本次处理结束。
+\n\n
+其实，除了上面的 Scroll 相关的调用和回调，还有 Fling 相关的调用和回调，处理逻辑基本一致。
+\n\n
+        **end**
+        \n\n
+</string>
+</resources>
