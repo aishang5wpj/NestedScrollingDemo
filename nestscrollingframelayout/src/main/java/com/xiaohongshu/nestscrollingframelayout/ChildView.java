@@ -108,6 +108,8 @@ public class ChildView extends FrameLayout implements NestedScrollingChild, INes
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
+                //todo 手指抬起时：1、若子view没有滚完，则子view进行fling；
+                //todo 2、若子view已经滚完，则直接让父view进行fling
                 getChildHelper().stopNestedScroll();
                 mVelocityTracker.computeCurrentVelocity(1000);
                 float velocity = mVelocityTracker.getYVelocity();
