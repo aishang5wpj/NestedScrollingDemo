@@ -11,7 +11,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.Scroller;
 
@@ -29,6 +29,7 @@ public class ChildView extends FrameLayout implements NestedScrollingChild, INes
 
     private Scroller mScroller;
     private VelocityTracker mVelocityTracker;
+    private boolean mIsFling = false;
 
     public ChildView(@NonNull Context context) {
         this(context, null);
@@ -40,7 +41,7 @@ public class ChildView extends FrameLayout implements NestedScrollingChild, INes
 
     public ChildView(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mScroller = new Scroller(context, new AccelerateDecelerateInterpolator());
+        mScroller = new Scroller(context, new LinearInterpolator());
     }
 
     @Override
@@ -81,8 +82,8 @@ public class ChildView extends FrameLayout implements NestedScrollingChild, INes
                     dy -= mConsume[1];
                 }
                 //2、自己消耗一波
-                //手指从上往下
                 int deltaY = 0;
+                //手指从上往下
                 if (dy < 0 && canMove2Top()) {
                     deltaY = dy;
                     if (deltaY + getCurrentScrollY() < getMinScrollY()) {
@@ -110,7 +111,7 @@ public class ChildView extends FrameLayout implements NestedScrollingChild, INes
                 getChildHelper().stopNestedScroll();
                 mVelocityTracker.computeCurrentVelocity(1000);
                 float velocity = mVelocityTracker.getYVelocity();
-                if (Math.abs(velocity) > 50) {
+                if (Math.abs(velocity) > 10) {
                     fling(-(int) velocity);
                 }
                 mVelocityTracker.recycle();
@@ -124,14 +125,48 @@ public class ChildView extends FrameLayout implements NestedScrollingChild, INes
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
+            print("child velocity: " + mScroller.getCurrVelocity());
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             invalidate();
         }
     }
 
+
+    /**
+     * 1、{@link VelocityTracker#getYVelocity()} 返回值的正负表示速度的方向
+     * 2、{@link Scroller#fling(int, int, int, int, int, int, int, int)} 中的velocity会
+     * 区分正负，而且maxX-minX和maxY-minY值的正负要保持一致(maxY表示最大滚动距离)，即：
+     * ①，当velocityY<0时，必须使maxY > minY，此时滚动效果等同于手指从下到上时的滚动
+     * ②，当velocityY>0时，则相反
+     *
+     * @param velocityY
+     */
     public void fling(int velocityY) {
-        mScroller.fling(0, getScrollY(), 0, velocityY, 0, 0, 0, mChildExpectedHeight - mMeasuredHeight);
+        mIsFling = true;
+        mScroller.fling(0, getScrollY(), 0, velocityY, 0, 0, getMinScrollY(), getMaxScrollY());
         invalidate();
+    }
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+        //手指从下到上
+        if ((t - oldt > 0 && getCurrentScrollY() >= getMaxScrollY())
+                //手指从上到下
+                || (t - oldt < 0) && getCurrentScrollY() <= getMinScrollY()) {
+            //只处理fling时的滚动
+            if (mIsFling) {
+                mIsFling = false;
+                float velocity = mScroller.getCurrVelocity() + 500;
+                //手指从上到下
+                if (t - oldt < 0) {
+                    //getCurrVelocity得到的值为何始终为正数？？VelocityTracker可以得到正数和负数的值
+                    velocity *= -1;
+                }
+                getChildHelper().dispatchNestedFling(0, velocity, false);
+                mScroller.abortAnimation();
+            }
+        }
     }
 
     @Override

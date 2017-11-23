@@ -9,6 +9,7 @@ import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.LinearLayout;
@@ -27,6 +28,7 @@ public class ParentView extends LinearLayout implements NestedScrollingParent, I
 
     private float mLastY;
     private Scroller mScroller;
+    private VelocityTracker mVelocityTracker;
 
     public ParentView(@NonNull Context context) {
         this(context, null);
@@ -58,8 +60,15 @@ public class ParentView extends LinearLayout implements NestedScrollingParent, I
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 mLastY = event.getRawY();
+                if (mVelocityTracker == null) {
+                    mVelocityTracker = VelocityTracker.obtain();
+                } else {
+                    mVelocityTracker.clear();
+                }
+                mVelocityTracker.addMovement(event);
                 break;
             case MotionEvent.ACTION_MOVE:
+                mVelocityTracker.addMovement(event);
                 int dy = (int) (mLastY - event.getRawY());
                 mLastY = event.getRawY();
                 //doScroll中只会记录子View的滚动距离
@@ -68,14 +77,55 @@ public class ParentView extends LinearLayout implements NestedScrollingParent, I
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
+                mVelocityTracker.computeCurrentVelocity(1000);
+                float velocity = mVelocityTracker.getYVelocity();
+                if (Math.abs(velocity) > 10) {
+                    doFling(-(int) velocity);
+                }
+                mVelocityTracker.recycle();
+                mVelocityTracker = null;
                 break;
         }
         return true;
     }
 
+    /**
+     * 这里已经是 -velocityY 了
+     *
+     * @param velocityY
+     */
+    public void doFling(int velocityY) {
+        int minScrollY;
+        int maxScrollY;
+        //手指从上到下,maxScrollY - minScrollY < 0
+        if (velocityY < 0) {
+            //mHeadView在屏幕外
+            if (getCurrentScrollY() >= mHeadHeight) {
+                minScrollY = mHeadHeight;
+            } else {
+                minScrollY = getMinScrollY();
+            }
+            maxScrollY = getCurrentScrollY();
+        }
+        //手指从下到上，maxScrollY - minScrollY > 0
+        else {
+            //mHeadView在屏幕外
+            if (getCurrentScrollY() >= mHeadHeight) {
+                minScrollY = getCurrentScrollY();
+                maxScrollY = getMaxScrollY();
+            } else {
+                minScrollY = getMinScrollY();
+                maxScrollY = mHeadHeight;
+            }
+        }
+        mScroller.fling(0, getScrollY(), 0, velocityY, 0, 0, minScrollY, maxScrollY);
+        invalidate();
+    }
+
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
+            print("parent velocity: " + mScroller.getCurrVelocity());
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             invalidate();
         }
@@ -233,18 +283,45 @@ public class ParentView extends LinearLayout implements NestedScrollingParent, I
 
     @Override
     public boolean onNestedFling(View target, float velocityX, float velocityY, boolean consumed) {
-        return false;
+        doNestedFling((int) velocityY);
+        return true;
     }
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
-        fling((int) velocityY);
-        return false;
+        doNestedFling((int) velocityY);
+        return true;
     }
 
-    public void fling(int velocityY) {
-        mScroller.fling(0, getScrollY(), 0, velocityY, 0, 0, 0, mHeadHeight + mBodyHeight);
+    /**
+     * 这里已经是 -velocityY 了
+     *
+     * @param velocityY
+     */
+    public void doNestedFling(int velocityY) {
+        int minScrollY;
+        int maxScrollY;
+        //手指从下到上，隐藏mHeightView
+        if (velocityY < 0) {
+            minScrollY = getMinScrollY();
+            maxScrollY = getCurrentScrollY();
+        }
+        //手指从上到下，显示mHeightView
+        else {
+            minScrollY = getCurrentScrollY();
+            maxScrollY = getMaxScrollY();
+        }
+        mScroller.fling(0, getScrollY(), 0, velocityY, 0, 0, minScrollY, maxScrollY);
         invalidate();
+    }
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+        //只处理fling时的滚动
+        if (getCurrentScrollY() >= getMaxScrollY()) {
+            mScroller.abortAnimation();
+        }
     }
 
     @Override
