@@ -3,7 +3,13 @@
 
 1、FrameLayout+FrameLayout实现
 
+NestedScrolling(嵌套滚动)
+
 <img src='nestscrollingframelayout/screenshot/01.gif' height='480px'/>
+
+NestedFiling(嵌套Fling)
+
+<img src='nestscrollingframelayout/screenshot/02.gif' height='480px'/>
 
 关于
 --
