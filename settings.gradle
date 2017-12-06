@@ -1,1 +1,1 @@
-include ':app', ':nestscrollingframelayout', ':velocityydemo'
+include ':app', ':nestscrollingframelayout', ':velocityydemo', 'nestedscrollingrecyclerview'

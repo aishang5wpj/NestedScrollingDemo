@@ -72,12 +72,20 @@ public class VelocityView extends FrameLayout {
      */
     public void fling(int velocityY) {
 //        mScroller.fling(getScrollX(), getScrollY(), 0, -velocityY, 0, 0, 0, 0); // n
-        mScroller.fling(0, 0, 0, -velocityY, 0, 0, -300, 300); // y
+//        mScroller.fling(0, 0, 0, -velocityY, 0, 0, 0, 300); // n
+//        mScroller.fling(0, 0, 0, -velocityY, 0, 0, -300, 0); // y
+//        mScroller.fling(0, 0, 0, -velocityY, 0, 0, -300, -200); // y
+//        mScroller.fling(0, 0, 0, -velocityY, 0, 0, -300, 300); // y
 //        mScroller.fling(getScrollX(), getScrollY(), 0, -velocityY, 0, 0, getScrollY() - 300, getScrollY() + 300); // y
 //        mScroller.fling(getScrollX(), getScrollY(), 0, -velocityY, 0, 0, -900, 0); // y
 //        mScroller.fling(getScrollX(), getScrollY(), 0, velocityY, 0, 0, 0, 900); // y
 //        mScroller.fling(0, 0, 0, -velocityY, 0, 0, -900, 0); // y
 //        mScroller.fling(0, 0, 0, velocityY, 0, 0, 0, 900); // y
+//        mScroller.fling(0, 0, 0, velocityY, 0, 0, 0, 900); // y
+//        mScroller.fling(0, 0, 0, velocityY, 0, 0, 300, 900); // n
+//        mScroller.fling(0, 0, 0, velocityY, 0, 0, -100, 100); // y
+//        mScroller.fling(0, 0, 0, -velocityY, 0, 0, -100, 100); // y
+        mScroller.fling(0, 0, 0, -velocityY, 0, 0, -100, 0); // y
         invalidate();
     }
 

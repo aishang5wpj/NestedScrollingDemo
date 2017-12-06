@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/NestedScrollingDemo.iml" filepath="$PROJECT_DIR$/NestedScrollingDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nestedscrollingrecyclerview/nestedscrollingrecyclerview.iml" filepath="$PROJECT_DIR$/nestedscrollingrecyclerview/nestedscrollingrecyclerview.iml" />
       <module fileurl="file://$PROJECT_DIR$/nestscrollingframelayout/nestscrollingframelayout.iml" filepath="$PROJECT_DIR$/nestscrollingframelayout/nestscrollingframelayout.iml" />
       <module fileurl="file://$PROJECT_DIR$/velocityydemo/velocityydemo.iml" filepath="$PROJECT_DIR$/velocityydemo/velocityydemo.iml" />
     </modules>
