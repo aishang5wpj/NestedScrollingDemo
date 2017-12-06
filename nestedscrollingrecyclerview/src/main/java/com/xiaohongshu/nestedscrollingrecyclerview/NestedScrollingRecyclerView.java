@@ -16,9 +16,7 @@ import android.view.ViewGroup;
  */
 public class NestedScrollingRecyclerView extends RecyclerView implements NestedScrollingParent {
 
-    private IScrollingHelper mScrollingHelper;
     private NestedScrollingParentHelper mParentHelper;
-    private NestedScrollingLinearLayoutManager mNestedLayoutManager;
 
     public NestedScrollingRecyclerView(Context context) {
         this(context, null);
@@ -42,8 +40,8 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
         super.onChildAttachedToWindow(child);
         View view = findNestedScrollingView(child);
         if (view != null && view instanceof NestedScrollingWebView) {
-            mScrollingHelper = (IScrollingHelper) view;
-            mNestedLayoutManager.setScrollingHelper(mScrollingHelper);
+            NestedScrollingLinearLayoutManager manager = (NestedScrollingLinearLayoutManager) getLayoutManager();
+            manager.setScrollingHelper((IScrollingHelper) view);
         }
     }
 
@@ -52,8 +50,8 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
         super.onChildDetachedFromWindow(child);
         View view = findNestedScrollingView(child);
         if (view != null && view instanceof NestedScrollingWebView) {
-            mScrollingHelper = null;
-            mNestedLayoutManager.setScrollingHelper(null);
+            NestedScrollingLinearLayoutManager manager = (NestedScrollingLinearLayoutManager) getLayoutManager();
+            manager.setScrollingHelper(null);
         }
     }
 
@@ -79,12 +77,6 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
             }
         }
         return null;
-    }
-
-    @Override
-    public void setLayoutManager(LayoutManager layout) {
-        super.setLayoutManager(layout);
-        mNestedLayoutManager = (NestedScrollingLinearLayoutManager) layout;
     }
 
     /*********************************************** Nested Child start *********************************************/
