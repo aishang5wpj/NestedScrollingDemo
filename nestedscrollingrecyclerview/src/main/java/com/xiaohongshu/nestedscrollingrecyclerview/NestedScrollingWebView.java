@@ -74,21 +74,11 @@ public class NestedScrollingWebView extends WebView implements NestedScrollingCh
                 //2、若子view已经滚完，则直接让父view进行fling
                 mVelocityTracker.computeCurrentVelocity(1000);
                 int velocity = (int) mVelocityTracker.getYVelocity();
-//                dispatchNestedPreFling(0, -velocity);
-                fling(-velocity);
+                dispatchNestedPreFling(0, -velocity);
                 stopNestedScroll();
                 break;
         }
         return true;
-    }
-
-    private void fling(int velocity) {
-        if (Math.abs(velocity) < 3) {
-            return;
-        }
-        mIsFling = true;
-        mScroller.fling(0, getCurrentScrollY(), 0, velocity, 0, 0, getMinScrollY(), getMaxScrollY());
-        invalidate();
     }
 
     @Override

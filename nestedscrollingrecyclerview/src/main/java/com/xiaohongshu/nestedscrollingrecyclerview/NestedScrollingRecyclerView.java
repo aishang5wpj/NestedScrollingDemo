@@ -138,7 +138,7 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
-        return false;
+        return fling((int) velocityX, (int) velocityY);
     }
 
     @Override
