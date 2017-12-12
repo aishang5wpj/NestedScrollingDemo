@@ -1,7 +1,7 @@
 # 嵌套滚动
 
 
-## 1、FrameLayout + LinearLayout实现([apk下载](https://raw.githubusercontent.com/wiki/aishang5wpj/NestedScrollingDemo/nestscrollingframelayout/nestscrollingframelayout-release.apk))
+## 1、FrameLayout + LinearLayout实现([apk下载](https://github.com/aishang5wpj/NestedScrollingDemo/blob/master/nestscrollingframelayout/nestscrollingframelayout-release.apk?raw=true))
 
 ### NestedScrolling(嵌套滚动)
 
@@ -11,7 +11,7 @@
 
 <img src='nestscrollingframelayout/screenshot/02.gif' height='480px'/>
 
-## 2、RecyclerView + WebView实现([apk下载](https://raw.githubusercontent.com/wiki/aishang5wpj/NestedScrollingDemo/nestedscrollingrecyclerview/nestedscrollingrecyclerview-release.apk))
+## 2、RecyclerView + WebView实现([apk下载](https://github.com/aishang5wpj/NestedScrollingDemo/blob/master/nestedscrollingrecyclerview/nestedscrollingrecyclerview-release.apk?raw=true))
 
 ### NestedScrolling(嵌套滚动)
 
