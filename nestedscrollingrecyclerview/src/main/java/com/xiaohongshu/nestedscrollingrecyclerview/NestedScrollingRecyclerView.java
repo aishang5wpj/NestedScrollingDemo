@@ -16,6 +16,7 @@ import android.view.ViewGroup;
  */
 public class NestedScrollingRecyclerView extends RecyclerView implements NestedScrollingParent {
 
+    private boolean mEnableNestedScrolling = false;
     private NestedScrollingParentHelper mParentHelper;
 
     public NestedScrollingRecyclerView(Context context) {
@@ -32,7 +33,7 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent e) {
-        return false;
+        return !mEnableNestedScrolling;
     }
 
     @Override
@@ -42,6 +43,7 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
         if (view != null && view instanceof NestedScrollingWebView) {
             NestedScrollingLinearLayoutManager manager = (NestedScrollingLinearLayoutManager) getLayoutManager();
             manager.setScrollingHelper((IScrollingHelper) view);
+            mEnableNestedScrolling = true;
         }
     }
 
@@ -52,6 +54,7 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
         if (view != null && view instanceof NestedScrollingWebView) {
             NestedScrollingLinearLayoutManager manager = (NestedScrollingLinearLayoutManager) getLayoutManager();
             manager.setScrollingHelper(null);
+            mEnableNestedScrolling = false;
         }
     }
 
