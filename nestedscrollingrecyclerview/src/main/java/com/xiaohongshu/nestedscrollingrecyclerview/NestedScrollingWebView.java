@@ -22,9 +22,8 @@ public class NestedScrollingWebView extends WebView implements NestedScrollingCh
     private int[] mOffsetInWindow = new int[2];
     private float mLastY;
 
-    private boolean mIsFling;
     private Scroller mScroller;
-    private VelocityTracker mVelocityTracker;
+    private VelocityTracker mVelocityTracker = VelocityTracker.obtain();
 
     public NestedScrollingWebView(Context context) {
         this(context, null);
@@ -48,11 +47,7 @@ public class NestedScrollingWebView extends WebView implements NestedScrollingCh
                     mScroller.abortAnimation();
                 }
                 mLastY = event.getRawY();
-                if (mVelocityTracker == null) {
-                    mVelocityTracker = VelocityTracker.obtain();
-                } else {
-                    mVelocityTracker.clear();
-                }
+                mVelocityTracker.clear();
                 mVelocityTracker.addMovement(event);
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -136,27 +131,6 @@ public class NestedScrollingWebView extends WebView implements NestedScrollingCh
 
     private int getMaxScrollY() {
         return (int) (getContentHeight() * getScale()) - getMeasuredHeight();
-    }
-
-    @Override
-    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
-        super.onScrollChanged(l, t, oldl, oldt);
-        //parent fling
-        if (mIsFling && mScroller.isFinished()) {
-            mIsFling = false;
-            float velocity = 0;
-            if (mScroller.getFinalY() == getMaxScrollY()) {
-
-                velocity = mScroller.getCurrVelocity() * 2;
-            } else if (mScroller.getFinalY() == getMinScrollY()) {
-                //手指从上到下
-                //getCurrVelocity得到的值为何始终为正数？？VelocityTracker可以得到正数和负数的值
-                velocity = mScroller.getCurrVelocity() * -2;
-            }
-            if (velocity != 0) {
-                getChildHelper().dispatchNestedFling(0, velocity, false);
-            }
-        }
     }
 
     private NestedScrollingChildHelper getChildHelper() {
