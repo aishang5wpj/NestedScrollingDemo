@@ -33,7 +33,7 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent e) {
-        return !mEnableNestedScrolling;
+        return !mEnableNestedScrolling && super.onInterceptTouchEvent(e);
     }
 
     @Override
