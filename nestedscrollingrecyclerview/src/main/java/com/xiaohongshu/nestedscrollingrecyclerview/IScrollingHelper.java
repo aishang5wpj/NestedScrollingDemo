@@ -9,14 +9,4 @@ public interface IScrollingHelper {
     int calculateAndScrollY(int dy);
 
     int getNestedScrollingTop();
-
-    int getCurrentScrollY();
-
-    int getMinScrollY();
-
-    int getMaxScrollY();
-
-    boolean canScrollUp();
-
-    boolean canScrollDown();
 }

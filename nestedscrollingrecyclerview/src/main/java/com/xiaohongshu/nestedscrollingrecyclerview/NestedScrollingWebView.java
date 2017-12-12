@@ -126,29 +126,16 @@ public class NestedScrollingWebView extends WebView implements NestedScrollingCh
         return deltaY;
     }
 
-    @Override
-    public int getCurrentScrollY() {
+    private int getCurrentScrollY() {
         return getScrollY();
     }
 
-    @Override
-    public int getMinScrollY() {
+    private int getMinScrollY() {
         return 0;
     }
 
-    @Override
-    public int getMaxScrollY() {
+    private int getMaxScrollY() {
         return (int) (getContentHeight() * getScale()) - getMeasuredHeight();
-    }
-
-    @Override
-    public boolean canScrollUp() {
-        return getCurrentScrollY() > getMinScrollY();
-    }
-
-    @Override
-    public boolean canScrollDown() {
-        return getCurrentScrollY() < getMaxScrollY();
     }
 
     @Override
