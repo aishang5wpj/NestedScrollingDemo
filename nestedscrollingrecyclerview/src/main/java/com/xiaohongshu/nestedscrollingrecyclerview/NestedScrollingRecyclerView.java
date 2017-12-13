@@ -16,7 +16,6 @@ import android.view.ViewGroup;
  */
 public class NestedScrollingRecyclerView extends RecyclerView implements NestedScrollingParent {
 
-    private boolean mEnableNestedScrolling = false;
     private NestedScrollingParentHelper mParentHelper;
 
     public NestedScrollingRecyclerView(Context context) {
@@ -32,18 +31,12 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
     }
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent e) {
-        return !mEnableNestedScrolling && super.onInterceptTouchEvent(e);
-    }
-
-    @Override
     public void onChildAttachedToWindow(View child) {
         super.onChildAttachedToWindow(child);
         View view = findNestedScrollingView(child);
         if (view != null && view instanceof NestedScrollingWebView) {
             NestedScrollingLinearLayoutManager manager = (NestedScrollingLinearLayoutManager) getLayoutManager();
             manager.setScrollingHelper((IScrollingHelper) view);
-            mEnableNestedScrolling = true;
         }
     }
 
@@ -54,7 +47,6 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
         if (view != null && view instanceof NestedScrollingWebView) {
             NestedScrollingLinearLayoutManager manager = (NestedScrollingLinearLayoutManager) getLayoutManager();
             manager.setScrollingHelper(null);
-            mEnableNestedScrolling = false;
         }
     }
 
@@ -114,20 +106,12 @@ public class NestedScrollingRecyclerView extends RecyclerView implements NestedS
         //手指从下到上，屏幕相机从上到下，scrollY的增值为正数
         if (dy > 0) {
             if (top > 0) {
-                if (dy > top) {
-                    deltaY = top;
-                } else {
-                    deltaY = dy;
-                }
+                deltaY = Math.min(top, dy);
             }
         } else {
             //手指从上到下，屏幕相机从下到上，scrollY的增值为负数
             if (top < 0) {
-                if (dy < top) {
-                    deltaY = top;
-                } else {
-                    deltaY = dy;
-                }
+                deltaY = Math.max(top, dy);
             }
         }
         consumed[1] = deltaY;
