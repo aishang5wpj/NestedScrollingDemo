@@ -40,6 +40,7 @@ public class NestedScrollingWebView extends WebView implements NestedScrollingCh
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
         int action = MotionEventCompat.getActionMasked(event);
         switch (action) {
             case MotionEvent.ACTION_DOWN:
