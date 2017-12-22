@@ -1,8 +1,8 @@
 # 嵌套滚动
 
 关于**事件分发**和**NestedScrolling**的具体详细介绍可以看我的这两篇博客：
-[《 事件分发和NestedScrolling（一）》](http://blog.csdn.net/aishang5wpj/article/details/78868996)
-[《事件分发和NestedScrolling（二）》](http://blog.csdn.net/aishang5wpj/article/details/78873343)
+- [《 事件分发和NestedScrolling（一）》](http://blog.csdn.net/aishang5wpj/article/details/78868996)
+- [《事件分发和NestedScrolling（二）》](http://blog.csdn.net/aishang5wpj/article/details/78873343)
 
 ## 1、FrameLayout + LinearLayout实现([apk下载](https://github.com/aishang5wpj/NestedScrollingDemo/blob/master/nestscrollingframelayout/nestscrollingframelayout-release.apk?raw=true))
 
