@@ -1,1 +1,1 @@
-include ':nestscrollingframelayout', ':velocityydemo', 'nestedscrollingrecyclerview'
+include ':nestscrollingframelayout', ':velocityydemo', 'nestedscrollingrecyclerview' , 'TouchEvent'

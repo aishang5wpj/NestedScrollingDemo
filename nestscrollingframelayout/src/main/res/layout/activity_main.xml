@@ -8,15 +8,15 @@
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="200dp">
+        android:layout_height="100dp"
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/nested_info_tv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lineSpacingExtra="1dp"
-            android:onClick="clearInfo"
-            android:padding="10dp"/>
+            android:onClick="clearInfo"/>
     </ScrollView>
 
     <com.xiaohongshu.nestscrollingframelayout.ParentView

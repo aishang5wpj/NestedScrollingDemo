@@ -8,6 +8,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/TouchEvent" />
             <option value="$PROJECT_DIR$/nestedscrollingrecyclerview" />
             <option value="$PROJECT_DIR$/nestscrollingframelayout" />
             <option value="$PROJECT_DIR$/velocityydemo" />
